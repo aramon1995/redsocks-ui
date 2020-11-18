@@ -1,0 +1,16 @@
+.side-bar {
+    transition: 0.5s ease;
+    box-shadow: 2px 0px 15px 1px #212123;
+}
+
+.close-button {
+    transition: 0.2s ease;
+
+    &:hover {
+        transform: scale(1.3);
+    }
+
+    &:active {
+        transform: scale(0.9);
+    }
+}
