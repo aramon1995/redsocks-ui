@@ -1,5 +1,6 @@
-import os from 'os';
-import sudo from 'sudo-prompt';
+const os = require('os');
+const sudo = require('sudo-prompt');
+const { exec } = require('child_process')
 
 const BASEPATH = '/home/' + os.userInfo().username + '/.redsocksui/';
 const CONFIGS = BASEPATH + 'configFiles/';
@@ -7,25 +8,29 @@ const DEFAULT = BASEPATH + 'default.iptables.rules';
 
 
 
-const stop = 'sudo service redsocks stop';
-const setDefault = 'iptables-restore ' + DEFAULT + ' && sudo iptables -F';
-const start = 'cd ' + BASEPATH + ' && sudo ./iptable-redsock && sudo service redsocks start';
+const stop = 'echo Profeazul1!|sudo -S service redsocks stop';
+const setDefault = 'iptables-restore ' + DEFAULT + ' && echo Profeazul1!|sudo -S iptables -F';
+const start = 'cd ' + BASEPATH + ' && echo Profeazul1!|sudo -S ./iptable-redsock && echo Profeazul1!|sudo -S service redsocks start';
 
-export function activeRedsocks(callbackError) {
-    sudo.exec(setDefault + ' && ' + stop + ' && ' + start, { name: 'Electron' },
+function activeRedsocks(callbackError) {
+    exec(setDefault + ' && ' + stop + ' && ' + start, { name: 'Electron' },
         function (error, stdout, stderr) {
             callbackError(error);
         });
+    // sudo.exec(setDefault + ' && ' + stop + ' && ' + start, { name: 'Electron' },
+    //     function (error, stdout, stderr) {
+    //         callbackError(error);
+    //     });
 }
 
-export function stopRedsocks(callbackError) {
+function stopRedsocks(callbackError) {
     sudo.exec(setDefault + ' && ' + stop, { name: 'Electron' },
         function (error, stdout, stderr) {
             callbackError();
         });
 }
 
-export function changeRedsocksConfig(config, isActive, callbackError) {
+function changeRedsocksConfig(config, isActive, callbackError) {
     const setConfig = ' sudo cp ' + CONFIGS + config + ' /etc/redsocks.conf';
     if (isActive) {
         sudo.exec(setConfig + setDefault + ' && ' + stop + ' && ' + start, { name: 'Electron' },
@@ -40,3 +45,5 @@ export function changeRedsocksConfig(config, isActive, callbackError) {
     }
 
 }
+
+module.exports = { activeRedsocks, stopRedsocks, changeRedsocksConfig };
