@@ -1,13 +1,14 @@
 import './config-file-editor.scss';
 import ConfigAdvanced from './config-advanced';
 import ConfigBasic from './config-basic';
-import { saveFile } from '../../shared/read_write_redsocks_config'
+import { channels } from '../../shared/constant';
 import React, { Component } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { ToggleButtonGroup, ToggleButton, Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { Link, Route, Redirect, withRouter } from 'react-router-dom';
+const { ipcRenderer } = window;
 
 class ConfigFileEditor extends Component {
 
@@ -29,7 +30,7 @@ class ConfigFileEditor extends Component {
     }
 
     saveChanges = () => {
-        saveFile(this.state.data.content, this.state.data.fileName);
+        ipcRenderer.send(channels.SAVE_CONFIG, [this.state.data.content, this.state.data.fileName]);
         this.setState({unsavedChanges:false});
         this.props.update(this.props.index,this.state.data);
     }

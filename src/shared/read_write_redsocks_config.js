@@ -1,5 +1,6 @@
-import fs from 'fs'
-export function readFiles(dir, callback) {
+const fs = require('fs');
+
+function readFiles(dir, callback) {
     fs.readdir(dir, (err, f) => {
         if (err) {
             throw err;
@@ -13,11 +14,11 @@ export function readFiles(dir, callback) {
     });
 }
 
-export function saveFile(data, fileName) {
+function saveFile(data, fileName) {
     fs.writeFileSync('/home/alejandrorh/.redsocksui/configFiles/' + fileName, data);
 }
 
-export function writeFile(file, data) {
+function writeFile(file, data) {
     const section = new RegExp('(' + data.section + '(\\s|\\n)*\\{(\\n|.)*?)\\}');
     const target = new RegExp(data.target + '\\s=\\s.*?;');
     if (target.exec(file) === null) {
@@ -35,7 +36,7 @@ export function writeFile(file, data) {
     }
 }
 
-export function parseRedsocksConfig(fileName, content) {
+function parseRedsocksConfig(fileName, content) {
     const user = /user\s=\s(.*)?;/.exec(content);
     const group = /group\s=\s(.*)?;/.exec(content);
     const local_ip = /local_ip\s=\s(.*)?;/.exec(content);
@@ -58,3 +59,5 @@ export function parseRedsocksConfig(fileName, content) {
     };
     return obj;
 }
+
+module.exports = {readFiles,saveFile,writeFile,parseRedsocksConfig};
