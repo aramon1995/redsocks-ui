@@ -24,7 +24,7 @@ let originalMenu = [
     }
   },
   {
-    label: 'INACTIVE', type: 'radio', click: function () {
+    label: 'INACTIVE', type: 'radio', checked:true, click: function () {
       appConfig.active = false
       updateConfig(appConfig);
       stopRedsocks(appConfig.password, (error) => { console.log('start ' + error) })
@@ -40,13 +40,14 @@ function fillMenu() {
     itemsMenu.push({
       label: element.fileName,
       type: "radio",
-      checked: element.fileName === appConfig.currentConfig,
+      checked: (element.fileName === appConfig.currentConfig) && appConfig.active ,
       click: function () { 
         let menui = null;
         contextMenu.items.forEach(element => {
           if (element.checked) {
             menui = element;
             appConfig.currentConfig = element.label
+            appConfig.active = true
             updateConfig(appConfig);
             mainWindow.webContents.send(channels.UPDATE_CURRENT_CONFIG,element.label)
           }
@@ -83,6 +84,13 @@ function createMainWindow() {
     e.preventDefault();
     mainWindow.hide();
   });
+}
+
+function updateMenu(){
+  itemsMenu = [...originalMenu]
+  fillMenu();
+  contextMenu = Menu.buildFromTemplate(itemsMenu);
+  tray.setContextMenu(contextMenu);
 }
 
 
@@ -129,6 +137,9 @@ ipcMain.on(channels.LOAD_SIDE_PANE_STATE, (event)=>{
 
 ipcMain.on(channels.ACTIVE_REDSOCKS, (event, arg) => {
   activeRedsocks(arg, (error) => { console.log('start ' + error) });
+  appConfig.active = true
+  updateConfig(appConfig)
+  updateMenu()
 });
 
 ipcMain.on(channels.UPDATE_APP_CONFIG, (event, arg) => {
@@ -140,10 +151,7 @@ ipcMain.on(channels.CHANGE_REDSOCKS_CONFIG, (event, arg) => {
   changeRedsocksConfig(arg[0], arg[1], arg[2], (error) => { console.log('changing ' + error) });
   appConfig.currentConfig = arg[0]
   updateConfig(appConfig);
-  itemsMenu = [...originalMenu]
-  fillMenu();
-  contextMenu = Menu.buildFromTemplate(itemsMenu);
-  tray.setContextMenu(contextMenu);
+  updateMenu()
 });
 
 ipcMain.on(channels.SAVE_CONFIG, (event, arg) => {
@@ -152,6 +160,9 @@ ipcMain.on(channels.SAVE_CONFIG, (event, arg) => {
 
 ipcMain.on(channels.STOP_REDSOCKS, (event, arg) => {
   stopRedsocks(arg, (error) => { console.log('stop ' + error) })
+  appConfig.active = false
+  updateConfig(appConfig)
+  updateMenu()
 });
 
 ipcMain.on(channels.READ_FILES, (event) => {

@@ -57,7 +57,6 @@ class App extends Component {
   }
 
   toogleActive = () => {
-    ipcRenderer.send(channels.UPDATE_APP_CONFIG, ['active',!this.state.active]);
     this.setState({ active: !this.state.active }, () => {
       if (this.state.active) {
         ipcRenderer.send(channels.ACTIVE_REDSOCKS, this.state.password);
