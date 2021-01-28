@@ -19,19 +19,33 @@ class App extends Component {
       files: [],
       openPanel: false,
       active: true,
-      currentConig: ''
+      currentConfig: '',
+      password: ''
     }
   }
 
+
   componentDidMount() {
-    if (this.state.active) {
-      ipcRenderer.send(channels.ACTIVE_REDSOCKS);
-    }
+    ipcRenderer.on(channels.UPDATE_ACTIVE,(event,arg)=>{
+      this.setState({active:arg})
+    })
+    ipcRenderer.on(channels.UPDATE_CURRENT_CONFIG,(event,arg)=>{
+      this.setState({currentConfig:arg,active:true})
+    })
+    ipcRenderer.send(channels.LOAD_INITIAL_STATE);
+    ipcRenderer.on(channels.LOAD_INITIAL_STATE, (event, arg)=>{
+      ipcRenderer.removeAllListeners(channels.LOAD_INITIAL_STATE)
+      const {password, active, currentConfig} = arg;
+      this.setState({password,active,currentConfig})
+      if (active) { 
+        ipcRenderer.send(channels.ACTIVE_REDSOCKS, password);
+      }
+    })
     ipcRenderer.send(channels.READ_FILES);
     ipcRenderer.on(channels.READ_FILES, (event, arg) => {
       ipcRenderer.removeAllListeners(channels.READ_FILES);
-      const { files, currentConfig } = arg;
-      this.setState({ files, currentConfig });
+      const {files} = arg;
+      this.setState({files});
     });
   }
 
@@ -39,15 +53,16 @@ class App extends Component {
     this.setState({
       currentConfig: fileName
     });
-    ipcRenderer.send(channels.CHANGE_REDSOCKS_CONFIG, [fileName,this.state.active]);
+    ipcRenderer.send(channels.CHANGE_REDSOCKS_CONFIG, [fileName, this.state.active, this.state.password]);
   }
 
   toogleActive = () => {
+    ipcRenderer.send(channels.UPDATE_APP_CONFIG, ['active',!this.state.active]);
     this.setState({ active: !this.state.active }, () => {
       if (this.state.active) {
-        ipcRenderer.send(channels.ACTIVE_REDSOCKS);
+        ipcRenderer.send(channels.ACTIVE_REDSOCKS, this.state.password);
       } else {
-        ipcRenderer.send(channels.STOP_REDSOCKS);
+        ipcRenderer.send(channels.STOP_REDSOCKS, this.state.password);
       }
     });
   }
@@ -64,10 +79,16 @@ class App extends Component {
     this.setState({ openPanel: !this.state.openPanel });
   }
 
+  savePassword = (newPassword) => {
+    this.setState({
+      password: newPassword
+    })
+  }
+
   render() {
     return (
       <div>
-        <SideBar size={30} toogleSide={this.setOpenPanel} isOpen={this.state.openPanel} />
+        <SideBar size={30} toogleSide={this.setOpenPanel} isOpen={this.state.openPanel} password = {this.state.password} changePassword={this.savePassword} />
         <div className="App">
           <header className="App-header">
             <div className='container-fluid'>

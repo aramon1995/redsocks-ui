@@ -4,7 +4,7 @@
   "private": true,
   "homepage": "./",
   "main": "electron/main.js",
-  "author":"Alejandro Ramon Hernandez <alejandrorh950522@gmail.com>",
+  "author": "Alejandro Ramon Hernandez <alejandrorh950522@gmail.com>",
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.32",
     "@fortawesome/free-regular-svg-icons": "^5.15.1",
@@ -14,6 +14,7 @@
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
     "bootstrap": "^4.5.3",
+    "electron-store": "^6.0.1",
     "react": "^17.0.1",
     "react-bootstrap": "^1.4.0",
     "react-dom": "^17.0.1",
@@ -28,7 +29,7 @@
     "build-electron": "mkdir build/src && cp -r electron/. build/electron && cp -r src/shared/. build/src/shared",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "start-electron": "export ELECTRON_START_URL=http://localhost:3000 && electron .",
+    "start-electron": "export ELECTRON_IS_DEV=isDev && electron .",
     "package": "electron-builder build -c.extraMetadata.main=build/electron/main.js --publish never --linux deb"
   },
   "eslintConfig": {

@@ -4,6 +4,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { Form } from 'react-bootstrap';
+import { channels } from '../../../shared/constant';
+const { ipcRenderer } = window;
 
 class SideBar extends Component {
 
@@ -11,26 +13,43 @@ class SideBar extends Component {
         super();
         this.state = {
             runOnStart: false,
-            tryIcon: false,
-            saveCredentials: false,
-            user: '',
-            password: ''
-        }
+            saveCredentials: false
+        }        
     }
+
+    componentDidMount(){
+        ipcRenderer.send(channels.LOAD_SIDE_PANE_STATE);
+        ipcRenderer.on(channels.LOAD_SIDE_PANE_STATE, (event, arg)=>{
+            ipcRenderer.removeAllListeners(channels.LOAD_SIDE_PANE_STATE)
+            this.setState({runOnStart:arg['runOnStart'],saveCredentials:arg['password'] !== ''})
+        });
+    }
+
     closeSide = () => {
         this.props.toogleSide()
     }
 
     toggleConfig = (target, value) => {
+        if(target === 'runOnStart'){
+            ipcRenderer.send(channels.UPDATE_APP_CONFIG, [target,!value]);
+        }
         this.setState({
             [target]: !value
+        }, () => {
+            if (target === 'saveCredentials' && this.state[target] === false) {
+                this.props.changePassword('')
+                ipcRenderer.send(channels.UPDATE_APP_CONFIG, ['password','']);
+            }    
         });
-        if (target === 'saveCredentials' && value === false) {
-            this.setState({
-                user: '',
-                password: ''
-            })
-        }
+    }
+
+    updatePassword = (newPassword) => {
+        this.props.changePassword(newPassword);
+        ipcRenderer.send(channels.UPDATE_APP_CONFIG, ['password',newPassword]);
+    }
+
+    runOnStart = (setRun) => {
+        ipcRenderer.send(channels.RUN_ON_START, [setRun,this.props.password]);
     }
 
     render() {
@@ -75,14 +94,22 @@ class SideBar extends Component {
                             </div>
                             <div className='col-12 pt-5'>
                                 <Form.Switch label='Run on Start' id='runOnStart' checked={this.state.runOnStart}
-                                    onChange={(e) => { this.toggleConfig(e.target.id, this.state[e.target.id]) }}
+                                    onChange={(e) => {
+                                        this.runOnStart(!this.state[e.target.id])
+                                        this.toggleConfig(e.target.id, this.state[e.target.id]);
+                                    }}
                                     style={{ color: 'white' }} />
                             </div>
                             <div className='col-12 pt-3'>
-                                <Form.Switch label='Try icon' id='tryIcon' checked={this.state.tryIcon}
+                                <Form.Switch label='Save password' id='saveCredentials' checked={this.state.saveCredentials}
                                     onChange={(e) => { this.toggleConfig(e.target.id, this.state[e.target.id]) }}
                                     style={{ color: 'white' }} />
                             </div>
+                            {this.state.saveCredentials &&
+                                <div className='col-12 pt-3'>
+                                    <Form.Control label='Password' type='input' defaultValue={this.props.password}
+                                        onChange={(e) => { this.updatePassword(e.target.value) }} />
+                                </div>}
                         </div>
                     </div>
                 </div>

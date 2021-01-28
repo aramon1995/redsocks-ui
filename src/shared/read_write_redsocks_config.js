@@ -1,21 +1,39 @@
 const fs = require('fs');
+const os = require('os')
 
-function readFiles(dir, callback) {
-    fs.readdir(dir, (err, f) => {
+function readFiles(callback) {
+    const configFiles = '/home/'+os.userInfo().username+'/.redsocksui/configFiles/';
+    fs.readdir(configFiles, (err, f) => {
         if (err) {
             throw err;
         }
         var content = [];
         for (var file in f) {
-            content.push(parseRedsocksConfig(f[file], fs.readFileSync(dir + f[file], 'utf8')));
+            content.push(parseRedsocksConfig(f[file], fs.readFileSync(configFiles + f[file], 'utf8')));
         }
         callback(content);
 
     });
 }
 
+function readConfig(){
+    const configDir = '/home/'+os.userInfo().username+'/.redsocksui/config.json';
+    var config = ''
+    if(fs.existsSync(configDir)){
+        config = fs.readFileSync(configDir);
+        config = JSON.parse(config);
+    }
+    return config;
+}
+
+function updateConfig(json){
+    const configDir = '/home/'+os.userInfo().username+'/.redsocksui/config.json';
+    fs.writeFileSync(configDir, JSON.stringify(json))
+}
+
 function saveFile(data, fileName) {
-    fs.writeFileSync('/home/alejandrorh/.redsocksui/configFiles/' + fileName, data);
+    const configFiles = '/home/'+os.userInfo().username+'/.redsocksui/configFiles/';
+    fs.writeFileSync(configFiles + fileName, data);
 }
 
 function writeFile(file, data) {
@@ -60,4 +78,4 @@ function parseRedsocksConfig(fileName, content) {
     return obj;
 }
 
-module.exports = {readFiles,saveFile,writeFile,parseRedsocksConfig};
+module.exports = {readFiles,saveFile,writeFile,parseRedsocksConfig,readConfig, updateConfig};
